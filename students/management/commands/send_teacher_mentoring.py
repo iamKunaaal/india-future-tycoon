@@ -13,9 +13,9 @@ from datetime import date
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-# Emails stop after this date. Extended to the submission deadline (15 Nov 2026)
-# at the client's request to keep the weekly reminders going till then.
-LAST_SESSION_DATE = date(2026, 11, 15)
+# Emails stop after this date. STOPPED at the client's request (Nov 2026) — set to
+# a past date so the weekly teacher-mentoring emails are no longer sent to schools.
+LAST_SESSION_DATE = date(2026, 11, 11)
 SUBJECT = 'Weekly IFT Teacher Mentoring & Training Session'
 
 

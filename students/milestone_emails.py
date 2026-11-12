@@ -35,7 +35,7 @@ MILESTONE_EMAILS = {
         'template': 'students/email_top400.html',
     },
     'resubmit_reminder': {
-        'subject': 'Refine & Resubmit Your Idea Before 15th November',
+        'subject': 'Refine & Resubmit Your Idea Before 10th December',
         'template': 'students/email_resubmit_reminder.html',
     },
     'school_winner': {

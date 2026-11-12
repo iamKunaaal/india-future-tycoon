@@ -1020,7 +1020,7 @@ def school_dashboard(request):
         days_left = sub_phase.days_remaining
         submission_deadline = sub_phase.end_date
     else:
-        submission_deadline = date(2026, 11, 15)
+        submission_deadline = date(2026, 11, 29)
         days_left = max(0, (submission_deadline - timezone.now().date()).days)
 
     # ---- Upcoming training calendar (managed by super admin via Content) ----
@@ -1143,7 +1143,7 @@ def platform_live_stats(request):
         days_left = sub_phase.days_remaining
         deadline = sub_phase.end_date
     else:
-        deadline = date(2026, 11, 15)
+        deadline = date(2026, 11, 29)
         days_left = max(0, (deadline - timezone.now().date()).days)
 
     return JsonResponse({
