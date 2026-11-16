@@ -1,0 +1,58 @@
+{% extends "accounts/email_onboard_base.html" %}
+{% block greeting %}Dear Principal,{% endblock %}
+{% block intro %}The excitement is building, and ideas are pouring in from schools across India! 🚀{% endblock %}
+{% block credentials %}{% endblock %}
+{% block content %}
+<tr>
+  <td style="padding:4px 32px 0 32px;">
+
+    {% if creative_url %}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px 0;">
+      <tr>
+        <td align="center">
+          <img src="{{ creative_url }}" alt="IFT Deadline Extended to 29th November" width="456" style="display:block; width:100%; max-width:456px; height:auto; border:0; border-radius:10px;">
+        </td>
+      </tr>
+    </table>
+    {% endif %}
+
+    <p style="margin:0 0 16px 0; font-size:14px; color:#444;">With students enthusiastically exploring problems, developing innovative solutions and building their entrepreneurial ideas, we are extending the registration, coaching and idea submission deadline for <strong>India's Future Tycoons (IFT)</strong> to <strong>29th November 2026</strong>.</p>
+
+    <p style="margin:0 0 16px 0; font-size:14px; color:#444;">This extension gives your school and students an additional opportunity to participate, explore their creativity and turn their ideas into something extraordinary!</p>
+
+    <p style="margin:20px 0 10px 0; font-size:15px; color:#1e1b2e;"><strong>Why should your school be part of IFT?</strong></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr><td style="padding:3px 0; font-size:14px; color:#444;">✅ Encourage students to think creatively and develop entrepreneurial mindsets.</td></tr>
+      <tr><td style="padding:3px 0; font-size:14px; color:#444;">✅ Give students an opportunity to identify real-world problems and build innovative solutions.</td></tr>
+      <tr><td style="padding:3px 0; font-size:14px; color:#444;">✅ Access mentoring and guidance to refine their ideas.</td></tr>
+      <tr><td style="padding:3px 0; font-size:14px; color:#444;">✅ Compete for national recognition and a place among India's most promising young innovators.</td></tr>
+    </table>
+
+    <p style="margin:24px 0 10px 0; font-size:15px; color:#1e1b2e;"><strong>📅 Mark Your Calendar – Upcoming IFT Milestones</strong></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f4fb; border-radius:8px; border:1px solid #ece6f5;">
+      <tr><td style="padding:12px 20px 4px 20px; font-size:14px; color:#1e1b2e;"><strong>29 November</strong> &nbsp;·&nbsp; Registration, Coaching &amp; Idea Submission Deadline</td></tr>
+      <tr><td style="padding:4px 20px; font-size:14px; color:#1e1b2e;"><strong>2 December</strong> &nbsp;·&nbsp; Top 400 Ideas Announcement</td></tr>
+      <tr><td style="padding:4px 20px; font-size:14px; color:#1e1b2e;"><strong>5–6 December</strong> &nbsp;·&nbsp; Online Mentoring</td></tr>
+      <tr><td style="padding:4px 20px; font-size:14px; color:#1e1b2e;"><strong>13 December</strong> &nbsp;·&nbsp; Top 100 Ideas Announcement</td></tr>
+      <tr><td style="padding:4px 20px; font-size:14px; color:#1e1b2e;"><strong>21–23 December</strong> &nbsp;·&nbsp; Zonal Evaluation</td></tr>
+      <tr><td style="padding:4px 20px; font-size:14px; color:#1e1b2e;"><strong>25 December</strong> &nbsp;·&nbsp; Hall of Fame – Top 12 Ideas</td></tr>
+      <tr><td style="padding:4px 20px; font-size:14px; color:#1e1b2e;"><strong>8–9 January</strong> &nbsp;·&nbsp; Two-Day Bootcamp</td></tr>
+      <tr><td style="padding:4px 20px 12px 20px; font-size:14px; color:#1e1b2e;"><strong>10 January</strong> &nbsp;·&nbsp; Grand Finale &amp; National Recognition</td></tr>
+    </table>
+
+    <p style="margin:22px 0 0 0; font-size:14px; color:#1e1b2e;"><strong>Don't let your students miss this opportunity!</strong></p>
+    <p style="margin:12px 0 0 0; font-size:14px; color:#444;">We encourage your school to register, motivate students to participate and give young minds the platform to transform their ideas into impactful solutions.</p>
+    <p style="margin:12px 0 0 0; font-size:14px; color:#444;">Let's make this edition of India's Future Tycoons bigger, bolder and more inspiring!</p>
+    <p style="margin:16px 0 0 0; font-size:14px; color:#1e1b2e;">The countdown has begun. Let the ideas flow!</p>
+  </td>
+</tr>
+{% endblock %}
+{% block button %}
+<tr>
+  <td style="padding:24px 32px 8px 32px;" align="center">
+    <a href="{{ login_url }}" style="display:inline-block; background-color:#F5C542; color:#2A1245; text-decoration:none; font-weight:700; font-size:14px; padding:12px 32px; border-radius:24px;">Log In to IFT</a>
+  </td>
+</tr>
+{% endblock %}
+{% block security_note %}{% endblock %}
+{% block footer %}Warm regards,<br>Team India's Future Tycoons<br><a href="https://indiafuturetycoons.com/" style="color:#5E2A97; text-decoration:none;">indiafuturetycoons.com</a>{% endblock %}
