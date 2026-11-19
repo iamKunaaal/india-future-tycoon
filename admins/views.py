@@ -736,6 +736,20 @@ def all_submissions_export(request):
     response['Content-Disposition'] = 'attachment; filename="ift-submissions.csv"'
     response.write('﻿')  # BOM so Excel opens UTF-8 correctly
 
+    # The 10 AI rubric parameters (each 0-10), placed right after AI Score.
+    param_fields = [
+        ('uniqueness_score', 'Uniqueness (/10)'),
+        ('ease_of_implementation_score', 'Ease of Implementation (/10)'),
+        ('feasibility_score', 'Feasibility (/10)'),
+        ('impactful_score', 'Impact (/10)'),
+        ('sustainable_score', 'Sustainability (/10)'),
+        ('conceptual_clarity_score', 'Conceptual Clarity (/10)'),
+        ('empathy_score', 'Empathy (/10)'),
+        ('creativity_score', 'Creativity (/10)'),
+        ('communication_score', 'Communication (/10)'),
+        ('flexible_thinking_score', 'Flexible Thinking (/10)'),
+    ]
+
     # The 12 idea questions, appended after the metadata columns.
     q_fields = [
         ('q1_target_group', 'Q1 - Target Group & Struggle'),
@@ -754,18 +768,22 @@ def all_submissions_export(request):
 
     writer = csv.writer(response)
     writer.writerow(['ID', 'Idea', 'Category', 'Team / Student', 'School',
-                     'Status', 'AI Score', 'Evaluator Score', 'Top 400', 'Rank', 'Date']
+                     'Status', 'AI Score']
+                    + [label for _, label in param_fields]
+                    + ['Evaluator Score', 'Top 400', 'Rank', 'Date']
                     + [label for _, label in q_fields])
 
     for s in submissions:
         ai_score = ''
         is_top_400 = ''
         rank = ''
+        param_values = ['' for _ in param_fields]
         try:
             ev = s.ai_evaluation
             ai_score = ev.final_score
             is_top_400 = 'Yes' if ev.is_top_400 else 'No'
             rank = ev.rank if ev.rank is not None else ''
+            param_values = [getattr(ev, fname, '') for fname, _ in param_fields]
         except Exception:
             pass
 
@@ -786,6 +804,7 @@ def all_submissions_export(request):
             s.student.school_display_name or '',
             s.get_status_display(),
             ai_score,
+        ] + param_values + [
             evaluator_score,
             is_top_400,
             rank,
