@@ -405,10 +405,10 @@
                                             <h3 class="card-title mb-0">Idea Submission</h3>
                                             {% if latest_submission.status == 'draft' %}
                                                 <span class="badge-draft">Draft Saved</span>
-                                            {% elif latest_submission.status == 'submitted' %}
-                                                <span class="badge-submitted">Submitted</span>
-                                            {% elif latest_submission.status == 'evaluated' %}
+                                            {% elif latest_submission.status == 'evaluated' and results_published %}
                                                 <span class="badge-evaluated">Evaluated</span>
+                                            {% elif latest_submission.status == 'submitted' or latest_submission.status == 'evaluated' %}
+                                                <span class="badge-submitted">Submitted</span>
                                             {% else %}
                                                 <span class="badge-submitted">{{ latest_submission.get_status_display }}</span>
                                             {% endif %}

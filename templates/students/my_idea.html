@@ -381,10 +381,10 @@
                         <div>
                             {% if submission.status == 'draft' %}
                             <span class="status-badge draft">DRAFT</span>
-                            {% elif submission.status == 'submitted' %}
-                            <span class="status-badge submitted">Published</span>
-                            {% elif submission.status == 'evaluated' %}
+                            {% elif submission.status == 'evaluated' and results_published %}
                             <span class="status-badge evaluated">Evaluated</span>
+                            {% elif submission.status == 'submitted' or submission.status == 'evaluated' %}
+                            <span class="status-badge submitted">Published</span>
                             {% else %}
                             <span class="status-badge submitted">{{ submission.get_status_display }}</span>
                             {% endif %}

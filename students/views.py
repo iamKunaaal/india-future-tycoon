@@ -1325,6 +1325,7 @@ def my_idea(request):
         'submission': submission,
         'ai_score': ai_score,
         'ai_rank': ai_rank,
+        'results_published': results_published,
         'team_members': team_members,
         'files': files,
         'team_role': team_role,
