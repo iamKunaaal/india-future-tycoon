@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.views.decorators.csrf import csrf_protect, csrf_exempt, ensure_csrf_cookie
 from django.core.mail import send_mail
 from .models import Student, IdeaSubmission, UploadedFile, School, IdeaLike, IdeaBookmark
 from .forms import StudentRegistrationForm, IdeaSubmissionForm
@@ -1336,6 +1336,7 @@ def my_idea(request):
 
 
 @login_required
+@ensure_csrf_cookie
 def team_page(request):
     """Team landing - show create/join if no team, else show team management."""
     from students.models import Team, TeamMembership
@@ -1531,7 +1532,7 @@ def remove_team_member(request):
             return JsonResponse({'success': False, 'message': 'Cannot remove team leader.'}, status=400)
         membership.delete()
         return JsonResponse({'success': True, 'message': 'Member removed.'})
-    except TeamMembership.DoesNotExist:
+    except (TeamMembership.DoesNotExist, ValueError, TypeError):
         return JsonResponse({'success': False, 'message': 'Member not found.'}, status=404)
 
 

@@ -392,6 +392,11 @@
                                         </div>
                                         <div class="d-flex align-items-center gap-2 ms-sm-auto">
                                             <span class="status-badge status-badge-pending">Pending</span>
+                                            {% if is_leader %}
+                                            <button type="button" class="remove-member-btn" title="Cancel invite" data-name="{{ membership.display_name }}" onclick="removeMember({{ membership.id }}, this.dataset.name)">
+                                                <span class="material-symbols-outlined" style="font-size:20px;">person_remove</span>
+                                            </button>
+                                            {% endif %}
                                         </div>
                                         {% else %}
                                         <!-- Active member -->
@@ -418,6 +423,11 @@
                                         </div>
                                         <div class="d-flex align-items-center gap-3 ms-sm-auto">
                                             <span class="status-badge status-badge-active">Active</span>
+                                            {% if is_leader and membership.role != 'leader' %}
+                                            <button type="button" class="remove-member-btn" title="Remove member" data-name="{{ membership.display_name }}" onclick="removeMember({{ membership.id }}, this.dataset.name)">
+                                                <span class="material-symbols-outlined" style="font-size:20px;">person_remove</span>
+                                            </button>
+                                            {% endif %}
                                         </div>
                                         {% endif %}
                                     </div>
