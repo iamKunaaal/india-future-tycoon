@@ -31,6 +31,12 @@ from django.utils import timezone
 IDEA_DEADLINE = date(2026, 11, 29)
 RESUBMIT_DEADLINE = date(2026, 12, 10)
 
+# OFF (2026-11-26): both templates are stale (say "Oct 15" / "Top 400 on Oct 31")
+# and would have fired ON 29 Nov 8 AM — before the deadline, clashing with the
+# 26-29 Nov reminders (send_idea_deadline_reminder). Re-enable with fresh copy
+# once the post-deadline auto-publish is built.
+IDEA_DEADLINE_EMAILS_ENABLED = False
+
 
 class Command(BaseCommand):
     help = 'Send date-gated milestone emails (idea reminder, idea published, resubmit reminder). Run daily via cron.'
@@ -67,7 +73,7 @@ class Command(BaseCommand):
                         'students/email_school_payment_reminder.html'):
                     sent['school_payment_reminder'] += 1
 
-        if today >= IDEA_DEADLINE:
+        if IDEA_DEADLINE_EMAILS_ENABLED and today > IDEA_DEADLINE:
             submitted_student_ids = set(
                 IdeaSubmission.objects.exclude(status='draft')
                 .values_list('student_id', flat=True)
