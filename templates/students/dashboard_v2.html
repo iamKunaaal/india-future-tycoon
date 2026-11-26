@@ -377,6 +377,27 @@
                 </div>
                 {% endif %}
 
+                {% if top400_resubmit_banner %}
+                <!-- Top 400 Edit & Resubmit (dismiss = hidden for this browser session only) -->
+                <div id="top400Banner" style="position:relative;background:linear-gradient(135deg,#5E2A97,#7B3FB5);border-radius:12px;padding:18px 52px 18px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span class="material-symbols-outlined" style="color:#DEDE50;font-size:30px;font-variation-settings:'FILL' 1;">workspace_premium</span>
+                        <div>
+                            <p style="margin:0;font-size:0.95rem;font-weight:600;color:#fff;">Congratulations! Your idea is in India's TOP 400.</p>
+                            <p style="margin:2px 0 0;font-size:0.8rem;color:rgba(255,255,255,0.85);">
+                                {% if top400_is_owner %}Refine your idea and resubmit it before {{ resubmit_deadline|date:"j M Y, g:i A" }} — your latest version will be evaluated for the next round.
+                                {% else %}Your team leader can refine and resubmit the idea before {{ resubmit_deadline|date:"j M Y, g:i A" }}. Share your suggestions now!{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <a href="{% if top400_is_owner %}{% url 'students:submit_idea' %}{% else %}{% url 'students:my_idea' %}{% endif %}" style="background:#DEDE50;color:#222;font-weight:600;font-size:0.85rem;padding:10px 24px;border-radius:8px;text-decoration:none;white-space:nowrap;">{% if top400_is_owner %}Update Idea{% else %}View Idea{% endif %}</a>
+                    <button type="button" aria-label="Close" onclick="document.getElementById('top400Banner').style.display='none';try{sessionStorage.setItem('ift_top400_banner_closed','1')}catch(e){}" style="position:absolute;top:10px;right:12px;background:transparent;border:0;color:rgba(255,255,255,0.85);cursor:pointer;padding:4px;line-height:1;">
+                        <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+                    </button>
+                </div>
+                <script>try{if(sessionStorage.getItem('ift_top400_banner_closed')==='1'){document.getElementById('top400Banner').style.display='none';}}catch(e){}</script>
+                {% endif %}
+
                 <!-- Welcome Banner -->
                 <div class="row align-items-start align-items-md-center mb-4 welcome-banner">
                     <div class="col-12 col-md-8">

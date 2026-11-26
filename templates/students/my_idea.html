@@ -391,6 +391,22 @@
                         </div>
                     </div>
 
+                    {% if resubmit_open %}
+                    <div style="display:flex; align-items:center; gap:1rem; padding:1rem 1.5rem; background:#F5F0FB; border:1px solid #E2D4F3; border-radius:12px; margin-bottom:1.5rem;">
+                        <span class="material-symbols-outlined" style="color:#5E2A97; font-size:28px; font-variation-settings:'FILL' 1;">workspace_premium</span>
+                        <div style="flex:1;">
+                            <p style="margin:0; font-size:0.9rem; font-weight:700; color:#3B1A63;">Congratulations! Your idea is in India's TOP 400.</p>
+                            <p style="margin:0; font-size:0.78rem; color:#5B4A75;">
+                                {% if is_owner %}Refine your idea and resubmit it before {{ resubmit_deadline|date:"j M Y, g:i A" }}. Your latest version will be evaluated for the next round.
+                                {% else %}Your team leader can refine and resubmit the idea before {{ resubmit_deadline|date:"j M Y, g:i A" }}. Suggest your changes now.{% endif %}
+                            </p>
+                        </div>
+                        {% if is_owner %}
+                        <a href="{% url 'students:submit_idea' %}" style="padding:0.55rem 1.1rem; background:#5E2A97; color:#fff; border-radius:8px; font-size:0.78rem; font-weight:700; text-decoration:none; white-space:nowrap;">Edit &amp; Resubmit</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
                     {% if team_role == 'leader' and pending_suggestions_count > 0 %}
                     <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; margin-bottom: 1.5rem;">
                         <span class="material-symbols-outlined" style="color: #DC2626; font-size: 24px; font-variation-settings: 'FILL' 1;">notification_important</span>
@@ -449,14 +465,22 @@
                             <div class="action-buttons">
                                 {% if team_role == 'member' %}
                                     {# Team member: Suggest Changes + View #}
+                                    {% if can_suggest %}
                                     <a class="btn-edit" href="{% url 'students:suggest_edit' submission.id %}">
                                         <span class="material-symbols-outlined">rate_review</span>
                                         Suggest Changes
                                     </a>
+                                    {% endif %}
                                     <a class="btn-view" href="{% url 'students:submission_detail' submission.id %}">
                                         <span class="material-symbols-outlined">visibility</span>
                                         View Full Submission
                                     </a>
+                                {% elif submission.status == 'draft' and idea_mode == 'locked' %}
+                                    {# Draft after the submission deadline — no more edits / publish #}
+                                    <span class="btn-edit" style="cursor:default; opacity:0.75;">
+                                        <span class="material-symbols-outlined">lock</span>
+                                        Idea submission closed
+                                    </span>
                                 {% elif submission.status == 'draft' %}
                                     {# Draft: Edit + Publish #}
                                     <a class="btn-edit" href="{% url 'students:submit_idea' %}">
@@ -491,6 +515,12 @@
                                         <span class="material-symbols-outlined">visibility</span>
                                         View Submission
                                     </a>
+                                    {% if idea_mode == 'resubmit' %}
+                                    <a class="btn-publish" href="{% url 'students:submit_idea' %}">
+                                        <span class="material-symbols-outlined">published_with_changes</span>
+                                        Edit &amp; Resubmit
+                                    </a>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                         </div>

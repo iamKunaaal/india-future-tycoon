@@ -343,7 +343,10 @@ class IdeaSubmission(models.Model):
     submitted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+    # Set when a Top 400 team edits & resubmits during the resubmit window
+    # (submission is overwritten in place). Used to pick ideas for re-evaluation.
+    resubmitted_at = models.DateTimeField(null=True, blank=True)
+
     # AI Processing
     ai_processed = models.BooleanField(default=False)
     ai_processing_error = models.TextField(blank=True)

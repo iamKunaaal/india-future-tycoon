@@ -255,3 +255,13 @@ BULK_STUDENT_UPLOAD_ENABLED = os.getenv('BULK_STUDENT_UPLOAD_ENABLED', 'false').
 # notice) until an admin sets this env var to true on Railway. Prevents an
 # accidental button press from publishing ranks / firing milestone emails.
 RESULTS_RELEASE_ENABLED = os.getenv('RESULTS_RELEASE_ENABLED', 'false').lower() == 'true'
+
+# Idea submission lock (IST, TIME_ZONE). After this moment no new idea, edit,
+# publish or suggestion-merge is accepted — the field is frozen for ranking.
+IDEA_SUBMISSION_DEADLINE = os.getenv('IDEA_SUBMISSION_DEADLINE', '2026-11-29T23:59:59')
+
+# Top 400 Edit & Resubmit window. Master switch OFF by default (client can't
+# open it by accident); even when ON it only works after the Top 400 results
+# are released and until RESUBMIT_DEADLINE. See students/idea_window.py.
+RESUBMIT_OPEN = os.getenv('RESUBMIT_OPEN', 'false').lower() == 'true'
+RESUBMIT_DEADLINE = os.getenv('RESUBMIT_DEADLINE', '2026-12-10T23:59:59')

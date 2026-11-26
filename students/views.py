@@ -404,6 +404,14 @@ def dashboard(request):
         'masterclass_link': masterclass_link,
         'is_locked': is_locked,
     }
+
+    # Top 400 "Edit & Resubmit" banner — shown to the owner AND team members
+    # while the resubmit window is open and the idea hasn't been resubmitted yet.
+    from students.idea_window import can_resubmit, resubmit_deadline
+    if latest_submission and not latest_submission.resubmitted_at and can_resubmit(latest_submission):
+        context['top400_resubmit_banner'] = True
+        context['top400_is_owner'] = latest_submission.student_id == student.id
+        context['resubmit_deadline'] = resubmit_deadline()
     return render(request, 'students/dashboard_v2.html', context)
 
 
@@ -487,6 +495,18 @@ def submit_idea(request):
 
     # Check for existing submission (for edit flow)
     existing = IdeaSubmission.objects.filter(student=student).order_by('-created_at').first()
+
+    # Submission lock / Top 400 resubmit window (students/idea_window.py).
+    from students.idea_window import edit_mode
+    mode = edit_mode(existing)
+    if mode == 'locked':
+        if existing and existing.status != 'draft':
+            messages.info(request, 'Your idea is published and locked for evaluation.')
+        else:
+            messages.error(request, 'Idea submission closed on 29 Nov 2026. Edits are no longer accepted.')
+        return redirect('students:my_idea' if existing else 'students:dashboard')
+    if mode == 'resubmit':
+        return _resubmit_idea(request, student, existing, membership)
 
     if request.method == 'POST':
         save_type = request.POST.get('save_type', 'submit')  # 'draft' or 'submit'
@@ -636,6 +656,65 @@ def submit_idea(request):
     })
 
 
+_IDEA_TEXT_FIELDS = ['q1_target_group', 'q2_exact_problem', 'q3_solution_simple', 'q4_differentiation',
+                     'q5_build_steps', 'q6_resources', 'q7_positive_change', 'q8_challenges',
+                     'q9_team_fit', 'q10_feedback', 'q11_creative_element', 'q12_pitch']
+
+
+def _resubmit_idea(request, student, submission, membership):
+    """Top 400 Edit & Resubmit (window open). Overwrites the published idea in
+    place — status stays published, every question must stay filled — and
+    stamps `resubmitted_at` so the admin can batch re-evaluate it later."""
+    if request.method == 'POST':
+        for field in _IDEA_TEXT_FIELDS + ['title', 'competition_track']:
+            if field in request.POST:
+                setattr(submission, field, request.POST.get(field, '').strip())
+
+        empty = [f for f in _IDEA_TEXT_FIELDS if not (getattr(submission, f, '') or '').strip()]
+        if empty:
+            # Not saved. Re-render with what they typed (in-memory instance).
+            messages.error(request, f'{len(empty)} question(s) are empty. Every question must be answered to resubmit.')
+        else:
+            submission.resubmitted_at = timezone.now()
+            submission.save()
+            upload_failed = False
+            for field_name, file_type in [('document_file', 'document'), ('image_file', 'image'), ('video_file', 'video')]:
+                uploaded_file = request.FILES.get(field_name)
+                if uploaded_file:
+                    try:
+                        UploadedFile.objects.filter(submission=submission, file_type=file_type).delete()
+                        UploadedFile.objects.create(
+                            submission=submission, file_type=file_type, file=uploaded_file,
+                            original_filename=uploaded_file.name, file_size=uploaded_file.size)
+                    except Exception as e:
+                        upload_failed = True
+                        print(f"[RESUBMIT] {file_type} upload failed for student {student.id}: {e}", flush=True)
+            create_notification(request.user, 'submission', 'Idea Resubmitted',
+                                'Your refined idea has been resubmitted for the next round.',
+                                'published_with_changes', '/my-idea/', 'View Idea')
+            if upload_failed:
+                messages.warning(request, 'Idea resubmitted, but a file could not be uploaded — please re-open and re-attach a smaller file.')
+            else:
+                messages.success(request, 'Your idea has been resubmitted!')
+            return redirect('students:my_idea')
+
+    video_list, videos_total, videos_watched, team_video_status = _learning_progress(student, membership)
+    from students.idea_window import resubmit_deadline
+    return render(request, 'students/submit_idea_v2.html', {
+        'form': IdeaSubmissionForm(instance=submission),
+        'is_edit': True,
+        'is_resubmit': True,
+        'resubmit_deadline': resubmit_deadline(),
+        'saved_title': submission.title,
+        'saved_track': submission.competition_track,
+        'video_list': video_list,
+        'videos_total': videos_total,
+        'videos_watched': videos_watched,
+        'all_videos_done': True,
+        'team_video_status': team_video_status,
+    })
+
+
 @login_required
 def submit_idea_classic(request):
     """Old submit idea view — classic UI"""
@@ -645,7 +724,8 @@ def submit_idea_classic(request):
         messages.error(request, 'Please complete your profile first.')
         return redirect('students:dashboard')
 
-    if request.method == 'POST':
+    from students.idea_window import submissions_open
+    if request.method == 'POST' or not submissions_open():
         return redirect('students:submit_idea')
 
     form = IdeaSubmissionForm()
@@ -1320,9 +1400,18 @@ def my_idea(request):
             submission=submission, suggested_by=request.user
         ).order_by('-created_at'))
 
+    from students.idea_window import edit_mode, submissions_open, can_resubmit, resubmit_deadline
+    is_owner = submission.student_id == student.id
+    resubmit_ok = can_resubmit(submission)
+
     context = {
         'student': student,
         'submission': submission,
+        'is_owner': is_owner,
+        'idea_mode': edit_mode(submission) if is_owner else None,
+        'can_suggest': submissions_open() or resubmit_ok,
+        'resubmit_open': resubmit_ok,
+        'resubmit_deadline': resubmit_deadline(),
         'ai_score': ai_score,
         'ai_rank': ai_rank,
         'results_published': results_published,
@@ -1607,6 +1696,10 @@ def suggest_edit(request, submission_id):
         return JsonResponse({'success': False, 'message': 'You are not in this team.'}, status=403)
 
     if request.method == 'GET':
+        from students.idea_window import submissions_open, can_resubmit
+        if not (submissions_open() or can_resubmit(submission)):
+            messages.info(request, 'This idea is locked — suggestions can no longer be submitted.')
+            return redirect('students:my_idea')
         context = {
             'student': student,
             'submission': submission,
@@ -1615,6 +1708,10 @@ def suggest_edit(request, submission_id):
         return render(request, 'students/suggest_edit.html', context)
 
     if request.method == 'POST':
+        from students.idea_window import submissions_open, can_resubmit
+        if not (submissions_open() or can_resubmit(submission)):
+            return JsonResponse({'success': False, 'message': 'This idea is locked — suggestions can no longer be submitted.'}, status=400)
+
         import json as json_mod
         if request.content_type == 'application/json':
             data = json_mod.loads(request.body)
@@ -1701,6 +1798,13 @@ def handle_suggestion(request, suggestion_id):
     action = data.get('action', '')
 
     if action == 'approve':
+        from students.idea_window import submissions_open, can_resubmit
+        if not submissions_open():
+            if not can_resubmit(suggestion.submission):
+                return JsonResponse({'success': False, 'message': 'This idea is locked — changes can no longer be merged.'}, status=400)
+            # Resubmit window: merged changes count as a resubmission
+            # (persisted by apply_changes' submission.save() below).
+            suggestion.submission.resubmitted_at = timezone.now()
         # Optional per-question selection: `fields` = list of field names to merge.
         # If omitted/empty -> approve all (original behaviour, backward compatible).
         selected = data.get('fields') or []
@@ -1765,6 +1869,10 @@ def publish_idea(request, submission_id):
     # already-evaluated idea (status reset + AI re-run + certificate re-sent).
     if submission.status != 'draft':
         return JsonResponse({'success': False, 'message': 'This idea has already been published.'}, status=400)
+
+    from students.idea_window import submissions_open
+    if not submissions_open():
+        return JsonResponse({'success': False, 'message': 'Idea submission closed on 29 Nov 2026.'}, status=400)
 
     # Validate required fields before publishing
     required_fields = ['q1_target_group', 'q2_exact_problem', 'q3_solution_simple', 'q4_differentiation',
