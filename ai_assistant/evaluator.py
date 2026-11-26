@@ -960,10 +960,14 @@ def update_rankings():
 
 
 def _send_ranking_milestone_emails():
-    """Fire Top 400 / Top 100 / School Winner emails for every currently
-    qualifying student. Safe to call every time rankings are recomputed —
-    MilestoneEmailLog (dedup) means each student only ever gets one email per
-    milestone, no matter how many times this runs."""
+    """Fire the Top 400 email for every currently qualifying student (called by
+    the Top 400 results release). MilestoneEmailLog dedup → once per student.
+
+    Top 100 / School Winner emails are deliberately NOT sent here any more
+    (2026-11-26): the Top 100 is a jury + AI curated list (`is_top_100`) with
+    its own, later release — sending on AI rank<=100 at the Top 400 release
+    would congratulate the wrong students. See _send_top100_milestone_emails.
+    """
     from students.milestone_emails import send_milestone_email
 
     top400_evals = (AIEvaluation.objects.filter(is_top_400=True)
@@ -971,17 +975,21 @@ def _send_ranking_milestone_emails():
     for e in top400_evals:
         send_milestone_email(e.submission.student, 'top400')
 
-    top100_evals = (AIEvaluation.objects.filter(
-                        is_disqualified=False, rank__isnull=False, rank__lte=100)
-                     .select_related('submission__student__school',
-                                      'submission__student__user'))
+
+def _send_top100_milestone_emails():
+    """Top 100 + School Winner emails for the CURATED list (is_top_100=True).
+    Not wired to any button yet — to be called by the separate Top 100 release."""
+    from students.milestone_emails import send_milestone_email
+
+    top100_evals = (AIEvaluation.objects.filter(is_top_100=True, is_disqualified=False)
+                    .select_related('submission__student__school', 'submission__student__user'))
     best_per_school = {}
     for e in top100_evals:
         send_milestone_email(e.submission.student, 'top100')
         school = e.submission.student.school
-        if school and (school.id not in best_per_school
-                       or e.rank < best_per_school[school.id][0]):
-            best_per_school[school.id] = (e.rank, e.submission.student)
+        rank = e.rank if e.rank is not None else 10 ** 9
+        if school and (school.id not in best_per_school or rank < best_per_school[school.id][0]):
+            best_per_school[school.id] = (rank, e.submission.student)
     for _, student in best_per_school.values():
         send_milestone_email(student, 'school_winner')
 

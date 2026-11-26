@@ -8,10 +8,10 @@ class AIEvaluationAdmin(admin.ModelAdmin):
     them here by ticking the box. Saving (ticking + Save) is what fires the
     one-time milestone email (see ai_assistant/signals.py)."""
     list_display = ('submission', 'final_score', 'rank', 'is_top_400',
-                     'is_top_12', 'zonal_pitch_invited', 'is_disqualified',
+                     'is_top_100', 'is_top_12', 'zonal_pitch_invited', 'is_disqualified',
                      'model_used', 'tokens_used', 'cost_usd', 'evaluated_by', 'evaluated_at')
-    list_editable = ('is_top_12', 'zonal_pitch_invited')
-    list_filter = ('is_top_400', 'is_top_12', 'zonal_pitch_invited', 'is_disqualified',
+    list_editable = ('is_top_100', 'is_top_12', 'zonal_pitch_invited')
+    list_filter = ('is_top_400', 'is_top_100', 'is_top_12', 'zonal_pitch_invited', 'is_disqualified',
                     'model_used', 'evaluated_by')
     search_fields = ('submission__title', 'submission__student__user__email',
                       'submission__student__user__first_name',

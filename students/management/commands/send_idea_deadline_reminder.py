@@ -29,12 +29,17 @@ KINDS = {
               'students/email_idea_deadline_reminder.html'),
     'final': ('FINAL CALL!!! Submit your IFT idea today.',
               'students/email_idea_final_call.html'),
+    # 30 Nov: only owners of drafts auto-published at 00:05 (auto_publish_drafts)
+    # + their participation certificate (owner and teammates).
+    'auto_published': ('Your IFT Idea Has Been Published!',
+                       'students/email_idea_auto_published.html'),
 }
 SCHEDULE = {
     date(2026, 11, 26): 'daily',
     date(2026, 11, 27): 'daily',
     date(2026, 11, 28): 'daily',
     date(2026, 11, 29): 'final',
+    date(2026, 11, 30): 'auto_published',
 }
 WORKERS = 6
 
@@ -70,6 +75,9 @@ class Command(BaseCommand):
         from students.models import Student
         from admins.models import MilestoneEmailLog
         from admins.views import _excluded_students_q
+
+        if kind == 'auto_published':
+            return self._auto_published(day, opts['dry_run'])
 
         subject, template = KINDS[kind]
         key = f'idl_{day.isoformat()}'
@@ -114,3 +122,41 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(
             f'Idea deadline reminder {day} [{kind}]: sent={sent} failed={len(jobs) - sent}'))
+
+    def _auto_published(self, day, dry_run):
+        """Email + participation certificate for ideas published by the
+        00:05 auto-publish job. Sequential (certificate PDFs are heavy)."""
+        from accounts.emails import send_branded_email
+        from admins.models import MilestoneEmailLog
+        from admins.views import send_participation_certificate
+        from students.models import IdeaSubmission
+
+        subject, template = KINDS['auto_published']
+        key = f'idl_{day.isoformat()}'
+        done = set(MilestoneEmailLog.objects.filter(milestone=key).values_list('student_id', flat=True))
+        subs = (IdeaSubmission.objects.filter(auto_published=True)
+                .exclude(status='draft').exclude(student_id__in=done)
+                .select_related('student__user').order_by('id'))
+        self.stdout.write(f'{day} [auto_published] owners_to_mail={subs.count()} already_sent={len(done)}')
+        if dry_run:
+            return
+        sent = failed = no_email = certs = 0
+        for sub in subs:
+            st = sub.student
+            email = (st.user.email or '').strip()
+            if email:
+                if send_branded_email(subject, email, template, {'name': _name(st.user)}):
+                    sent += 1
+                else:
+                    failed += 1
+                    continue  # retry next run
+            else:
+                no_email += 1
+            MilestoneEmailLog.objects.get_or_create(student=st, milestone=key)
+            try:
+                send_participation_certificate(st, background=False)  # owner + teammates, deduped
+                certs += 1
+            except Exception as e:
+                self.stderr.write(f'  certificate failed for student {st.id}: {e}')
+        self.stdout.write(self.style.SUCCESS(
+            f'Auto-published idea emails {day}: sent={sent} failed={failed} no_email={no_email} cert_runs={certs}'))

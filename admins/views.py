@@ -4835,7 +4835,7 @@ def _send_certificate(cert_type, name, email, student=None, school=None,
     return ok, error
 
 
-def send_participation_certificate(student, sent_by=None):
+def send_participation_certificate(student, sent_by=None, background=True):
     """Auto-email the Participation certificate to `student` AND all their
     teammates — a team submits one idea, but every member participated. Runs
     in the background, sends ONCE per student (dedupe), skips students with no
@@ -4874,6 +4874,9 @@ def send_participation_certificate(student, sent_by=None):
         except Exception:
             pass  # must never affect the caller (idea submission)
 
+    if not background:
+        _run()  # management commands: the process exits before a daemon thread finishes
+        return
     threading.Thread(target=_run, daemon=True).start()
 
 

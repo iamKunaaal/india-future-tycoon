@@ -308,11 +308,17 @@ def dashboard(request):
     results_published = ResultsRelease.is_live()
     ai_score = None
     ai_rank = None
+    # Top 100 / Top 12 badges follow the CURATED flags (jury + AI picks set by
+    # admin), never the raw AI rank — otherwise the Top 400 release would leak
+    # them early. Both stay False until admin marks the lists.
+    top100_badge = top12_badge = False
     if latest_submission and results_published:
         try:
             ev = latest_submission.ai_evaluation
             ai_score = ev.final_score
             ai_rank = ev.rank
+            top100_badge = bool(ev.is_top_100 or ev.is_top_12)
+            top12_badge = bool(ev.is_top_12)
         except:
             pass
 
@@ -387,6 +393,8 @@ def dashboard(request):
         'team_code': team_code,
         'ai_score': ai_score,
         'ai_rank': ai_rank,
+        'top100_badge': top100_badge,
+        'top12_badge': top12_badge,
         'results_published': results_published,
         'phases': phases,
         'active_phase': active_phase,

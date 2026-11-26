@@ -93,6 +93,9 @@ class AIEvaluation(models.Model):
     # Later-stage milestones with no scoring formula — these are manual jury/
     # admin selections (toggle in Django admin). Setting either to True fires
     # the corresponding milestone email exactly once (see ai_assistant/signals.py).
+    # Curated Top 100 (jury + AI picks). Ticking it sends NOTHING — Top 100
+    # emails go only via the separate Top 100 release (_send_top100_milestone_emails).
+    is_top_100 = models.BooleanField(default=False, help_text="Curated Top 100 (jury + AI). No email on tick; emailed at Top 100 release.")
     is_top_12 = models.BooleanField(default=False, help_text="Manually selected as Top 12 (national finale)")
     zonal_pitch_invited = models.BooleanField(default=False, help_text="Manually invited to the Zonal Pitch Fest")
 

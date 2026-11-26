@@ -346,6 +346,9 @@ class IdeaSubmission(models.Model):
     # Set when a Top 400 team edits & resubmits during the resubmit window
     # (submission is overwritten in place). Used to pick ideas for re-evaluation.
     resubmitted_at = models.DateTimeField(null=True, blank=True)
+    # True when the draft was published by the post-deadline auto-publish job
+    # (manage.py auto_publish_drafts) rather than by the student.
+    auto_published = models.BooleanField(default=False)
 
     # AI Processing
     ai_processed = models.BooleanField(default=False)
